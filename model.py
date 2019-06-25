@@ -23,7 +23,7 @@ def Unet(x):
     u3 = blocks.up(input=u2, skip=c2, dim_out=f[1], name="up3") #32 -> 64
     u4 = blocks.up(input=u3, skip=c1, dim_out=f[0], name="up4") #64 -> 128
 
-    output = layers.last_layer(input=u4, dim_out=1, name="out")
+    output = layers.last_layer(input=u4, dim_out=2, name="out")
 
     return output
 
