@@ -4,33 +4,10 @@ import matplotlib.pylab as plt
 # import tensorflow_probability as tfp
 # tfd = tfp.distributions
 
-# tf.enable_eager_execution()
-
-# def cross_entropy(y_,output_map):
-#     return -tf.reduce_mean(y_*tf.log(tf.clip_by_value(output_map,1e-10,1.0)), name="cross_entropy")
-#
-#
-# def dice_coef(y_true, y_pred):
-#
-#     smooth = 1.
-#     # y_true_f = K.flatten(y_true)#tf.reshape(y_true, [-1])
-#     # y_pred_f = K.flatten(y_pred)#tf.reshape(y_pred, [-1])
-#     # intersection = K.sum(y_true_f * y_pred_f)#tf.reduce_sum(y_true_f * y_pred_f)
-#     # #print(type((2. * intersection + smooth) / (K.sum(y_true_f) + K.sum(y_pred_f) + smooth)))
-#     # return (2. * intersection + smooth) / (K.sum(y_true_f) + K.sum(y_pred_f) + smooth)
-#
-#     numerator = 2. * tf.reduce_sum(y_true * y_pred)
-#     denominator = tf.reduce_sum(y_true + tf.square(y_pred))
-#
-#     return numerator / (denominator + smooth)
-
-
 
 def optimize(loss):
     ''' optimizador '''
-    # se define optimizador
     opt = tf.train.AdamOptimizer(learning_rate=1e-3)
-    # se entrena con función de pérdida resultante
     train_opt = opt.minimize(loss)
 
     return train_opt
@@ -65,29 +42,16 @@ def ce_loss(labels, logits, n_classes, loss_mask=None, name='ce_loss'):
 
         batch_size = tf.cast(tf.shape(labels)[0], tf.float32)
 
-        # if one_hot_labels:
-        #     flat_labels = tf.reshape(labels, [-1, n_classes])
-        # else:
-        # shape = labels.get_shape().as_list()
-        # dim = np.prod(shape[1:])
-        # flat_labels = tf.reshape(labels, [-1, dim])
-        # flat_labels = tf.reshape(labels, [-1])
-
         dims = labels.get_shape().as_list()[1]
 
         flat_labels = tf.reshape(labels,[-1, dims * dims])
-        # print(labels.shape)
-        # print(flat_labels.shape, type(flat_labels))
         flat_labels = tf.one_hot(indices=flat_labels, depth=n_classes, axis=-1)
-        print(flat_labels.shape)
 
         # do not compute gradients wrt the labels
         flat_labels = tf.stop_gradient(flat_labels)
 
 
         flat_logits = tf.reshape(logits, [-1, dims*dims, n_classes])
-        # print(logits.shape)
-        print(flat_logits.shape)
 
         error = tf.nn.softmax_cross_entropy_with_logits_v2(labels=flat_labels,
                                                            logits=flat_logits)
@@ -98,10 +62,7 @@ def ce_loss(labels, logits, n_classes, loss_mask=None, name='ce_loss'):
             ce_mean = tf.reduce_mean(error)
         else:
             loss_mask_flat = tf.reshape(loss_mask, [-1, dims*dims])
-            print(loss_mask_flat)
             loss_mask_flat = (1. - tf.cast(loss_mask_flat, tf.float32))
-            print(loss_mask_flat)
-            print(error)
             ce_sum = tf.reduce_sum(loss_mask_flat * error) / batch_size
             n_valid_pixels = tf.reduce_sum(loss_mask_flat)
             ce_mean = tf.reduce_sum(loss_mask_flat * error) / n_valid_pixels
@@ -119,8 +80,6 @@ def elbo(seg, logits, prior_mvn, posterior_mvn, n_classes, beta=1.0,analytic_kl=
         :param loss_mask: 4D tensor, binary
         :return: 1D tensor
         """
-        # if z_q is None:
-        #     z_q = self._q.sample()
 
         _kl = tf.reduce_mean(kl_div(posterior_mvn, prior_mvn))
 
