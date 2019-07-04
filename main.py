@@ -10,16 +10,21 @@ import sys, os
 # DATA_PATH = "/content/drive/My Drive/Tesis/Colab/full/"
 # CODE_PATH = "/content/drive/My Drive/DS 2/Project/"
 
-# DATA_PATH = '/home/cota/Documents/TESIS/codes/data/Brain/'
-CODE_PATH = './output/'
-if not os.path.isdir(CODE_PATH):
-    os.mkdir(CODE_PATH)
+# DATA_PATH = "/content/drive/My Drive/TESIS/data/"
+# CODE_PATH = "/content/drive/My Drive/TESIS/"
 
-DATA_PATH = sys.argv[1]
-batch_size = sys.argv[2]#128#64
+DATA_PATH = '/home/cota/Documents/TESIS/codes/data/Brain/'
+# CODE_PATH = './output/'
+CODE_PATH = ''
+# # if not os.path.isdir(CODE_PATH):
+# #     os.mkdir(CODE_PATH)
+#
+# DATA_PATH = sys.argv[1]
+# batch_size = sys.argv[2]#128#64
+batch_size = 2
 latent_dim = 6
-
-# obtener datos
+#
+# # obtener datos
 X_train, y_train, X_val, y_val, X_test, y_test = data.read_data(DATA_PATH)
 X_train, y_train = data.get_data(X_train, y_train)
 X_val, y_val = data.get_data(X_val, y_val)
@@ -32,8 +37,9 @@ X_test_batch, y_test_batch = data.get_batches(X_test, y_test, batch_size)
 images = tf.placeholder(tf.float32, [None, 128, 128, 1], name="images")
 y_true = tf.placeholder(tf.int32, [None, 128, 128, 1], name="y_true")
 
+unet_seg = model.Res_Unet(images)
 
-unet_seg = model.Unet(images)
+# unet_seg = model.Unet(images)
 
 prior_mvn = model.Prior_net(images, latent_dim, 'prior_dist')
 # z_prior = prior_mvn.sample()
@@ -52,17 +58,17 @@ seg = model.Fcomb(unet_seg, z_posterior, 'posterior')
 
 loss = utils.elbo(y_true, seg, prior_mvn, posterior_mvn, 2)
 
-lambda_=1e-5
-l2_norms = [tf.nn.l2_loss(v) for v in tf.trainable_variables()]
-l2_norm = tf.reduce_sum(l2_norms)
-reg_loss = loss + lambda_*l2_norm
+# lambda_=1e-5
+# l2_norms = [tf.nn.l2_loss(v) for v in tf.trainable_variables()]
+# l2_norm = tf.reduce_sum(l2_norms)
+# reg_loss = loss + lambda_*l2_norm
 
-optimizer = utils.optimize(reg_loss)
+optimizer = utils.optimize(loss)
 
 # colección para guardar las variables en el entrenamiento
 tf.add_to_collection('saved_variables', value=images)
 tf.add_to_collection('saved_variables', value=seg)
-tf.add_to_collection('saved_variables', value=reg_loss)
+tf.add_to_collection('saved_variables', value=loss)
 tf.add_to_collection('saved_variables', value=optimizer)
 tf.add_to_collection('saved_variables', value=unet_seg)
 tf.add_to_collection('saved_variables', value=y_true)
@@ -95,17 +101,17 @@ with tf.Session() as sess:
     best_val = math.inf
     best_val_epoch = 0
     patience = 0
-    stop = 100
+    stop = 300
     delta = 0.0001
-    epochs = 100
+    epochs = 1500
 
     for epoch in range(epochs):
         tl, vl = [], []
         segs_t, segs_v = [], []
-        segs_t2, segs_v2 = [], []
+        # segs_t2, segs_v2 = [], []
         u_t, u_v = [], []
-        cet, cev = [], []
-        klt, klv = [], []
+        # cet, cev = [], []
+        # klt, klv = [], []
         for step, batch in enumerate(X_train_batch):
             # print(step)
             # print(len(batch), batch[0].shape)
@@ -185,8 +191,8 @@ with tf.Session() as sess:
     np.save(CODE_PATH+'val_loss.npy', val_loss_)
     np.save(CODE_PATH+'segs.npy', segs_t)
     np.save(CODE_PATH+'val_segs.npy', segs_v)
-    np.save(CODE_PATH+'segs2.npy', segs_t2)
-    np.save(CODE_PATH+'val_segs2.npy', segs_v2)
+    # np.save(CODE_PATH+'segs2.npy', segs_t2)
+    # np.save(CODE_PATH+'val_segs2.npy', segs_v2)
     np.save(CODE_PATH+'unet.npy', u_t)
     np.save(CODE_PATH+'val_unet.npy', u_v)
 

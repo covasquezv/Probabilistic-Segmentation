@@ -21,6 +21,15 @@ def load(X, y, i, image_size=128):
     tmp_im = image.reshape(image.shape[0], image.shape[1])
     tmp_mask = mask.reshape(mask.shape[0], mask.shape[1])
 
+    # fig = plt.figure(i+1)
+    # plt.set_cmap('gray')
+    # fig.add_subplot(121)
+    # plt.imshow(tmp_im)
+    # fig.add_subplot(122)
+    # plt.imshow(tmp_mask)
+    # # plt.imshow(s[i][:,:,0])
+    # plt.savefig(str(i+1)+'_.png')
+
     return image, mask
 
 def read_data(PATH):
@@ -41,7 +50,10 @@ def read_data(PATH):
     X_t = X_v[n:]
     y_t = y_v[n:]
 
+    # print(len(X_tr), len(X_va), len(X_t))
+
     return X_tr, y_tr, X_va, y_va, X_t, y_t
+    # return X_v, y_v
 
 
 def get_data(X, y, image_size=128):
